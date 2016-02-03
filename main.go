@@ -85,7 +85,7 @@ var (
 command list: get/set/child/creat/watchExist/watchChildren/delChildNode
 
  `
-	servers []string = []string{"106.186.127.250:2181"}
+	servers []string = []string{"1127.0.0.1:2181"}
 	timeout int      = 3
 	zh      *u.ZH
 )
