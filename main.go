@@ -45,6 +45,32 @@ func watchChildren(zh *u.ZH, path string) (children []string, event <-chan zk.Ev
 	return
 }
 
+func delChildNode(zh *u.ZH, path string) (err error) {
+	var childNodes []string
+	var stat zk.Stat
+	childNodes, err = zh.Children(path)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	fmt.Println("begin to del node:", childNodes)
+	for _, node := range childNodes {
+		nodeToDel := fmt.Sprintf("%s/%s", path, node)
+		_, stat, err = zh.Get(nodeToDel)
+		if err != nil {
+			fmt.Println("get zk node fail:", nodeToDel, err.Error())
+			return
+		} else {
+			fmt.Println("begin to del node:", nodeToDel)
+		}
+		err = zh.Delete(nodeToDel, int32(stat.Version()))
+		if err != nil {
+			fmt.Printf("del node %s error: %s", nodeToDel, err.Error())
+			continue
+		}
+	}
+	return
+}
 func main() {
 	testNode := "/mynode/test"
 	servers := []string{"106.186.127.250:2181"}
@@ -148,24 +174,6 @@ func main() {
 		fmt.Println(c)
 	}
 
-	//////
-	// delete root node
-	pathsD, cerrD := zh.Children(testNode)
-	if cerrD != nil {
-		fmt.Println(cerrD.Error())
-	}
-	fmt.Println("begin to del node:", pathsD)
-	for _, node := range pathsD {
-		nodeToDel := fmt.Sprintf("%s/%s", testNode, node)
-		_, stat, rerrd := zh.Get(nodeToDel)
-		if rerrd != nil {
-			fmt.Println("get zk node fail:", nodeToDel, rerrd.Error())
-		} else {
-			fmt.Println(nodeToDel, stat.Version())
-		}
-		derr := zh.Delete(nodeToDel, int32(stat.Version()))
-		if derr != nil {
-			fmt.Println(derr.Error())
-		}
-	}
+	// delete child nodes node
+	delChildNode(zh, testNode)
 }
