@@ -9,20 +9,6 @@ import (
 	zk "go.intra.xiaojukeji.com/golang/go-zookeeper/zk"
 )
 
-// var (
-// 	// testNode string   = "/mynode/test"
-// 	servers []string = []string{"106.186.127.250:2181"}
-// 	timeout int      = 3
-// 	zh      *u.ZH
-// )
-
-// func init() {
-// 	zh, err := u.NewZH(servers, timeout)
-// 	if err == nil {
-// 		defer zh.Close()
-// 	}
-// }
-
 func Get(zh *u.ZH, path string) (content string, stat zk.Stat, err error) {
 	var read []byte
 	read, stat, err = zh.Get(path)

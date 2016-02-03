@@ -125,7 +125,6 @@ func main() {
 	fmt.Println(flags)
 
 	// testNode := "/mynode/test"
-	servers := []string{"106.186.127.250:2181"}
 	timeout := 3
 	zh, err := u.NewZH(servers, timeout)
 	if err == nil {
