@@ -4,77 +4,26 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	c "github.com/ianwoolf/zkClient/command"
 	u "github.com/ianwoolf/zkClient/util"
-	// zk "go.intra.xiaojukeji.com/golang/go-zookeeper/zk"
 )
 
-// func get(zh *u.ZH, path string) (content string, stat zk.Stat, err error) {
-// 	var read []byte
-// 	read, stat, err = zh.Get(path)
-// 	if err == nil {
-// 		content = string(read)
-// 	}
-// 	return
-// }
+type FlagParam []string
 
-// func children(zh *u.ZH, path string) (paths []string, err error) {
-// 	paths, err = zh.Children(path)
-// 	return
-// }
+func (f *FlagParam) String() string {
+	return "string method"
+}
 
-// func set(zh *u.ZH, path string, data []byte, version int32) (stat zk.Stat, err error) {
-// 	stat, err = zh.Set(path, data, version)
-// 	return
-// }
-
-// func getLock(zh *u.ZH, path string) *zk.Lock {
-// 	return zh.NewLock(path)
-// }
-
-// func create(zh *u.ZH, path string, data []byte, flags int32) (string, error) {
-// 	return zh.Create(path, data, flags)
-// }
-
-// func watchExist(zh *u.ZH, path string) (ok bool, event <-chan zk.Event) {
-// 	ok, event = zh.ExistsW(path)
-// 	return
-// }
-
-// func watchChildren(zh *u.ZH, path string) (children []string, event <-chan zk.Event, err error) {
-// 	children, event, err = zh.ChildrenW(path)
-// 	return
-// }
-
-// func delChildNode(zh *u.ZH, path string) (err error) {
-// 	var childNodes []string
-// 	var stat zk.Stat
-// 	childNodes, err = zh.Children(path)
-// 	if err != nil {
-// 		fmt.Println(err.Error())
-// 		return
-// 	}
-// 	fmt.Println("begin to del node:", childNodes)
-// 	for _, node := range childNodes {
-// 		nodeToDel := fmt.Sprintf("%s/%s", path, node)
-// 		_, stat, err = zh.Get(nodeToDel)
-// 		if err != nil {
-// 			fmt.Println("get zk node fail:", nodeToDel, err.Error())
-// 			return
-// 		} else {
-// 			fmt.Println("begin to del node:", nodeToDel)
-// 		}
-// 		err = zh.Delete(nodeToDel, int32(stat.Version()))
-// 		if err != nil {
-// 			fmt.Printf("del node %s error: %s", nodeToDel, err.Error())
-// 			continue
-// 		}
-// 	}
-// 	return
-// }
+func (f *FlagParam) Set(value string) error {
+	*f = strings.Split(value, ",")
+	return nil
+}
 
 var (
+	zh      *u.ZH
+	servers FlagParam
 	command string
 	path    string
 	// todo interface
@@ -85,9 +34,6 @@ var (
 command list: get/set/child/creat/watchExist/watchChildren/delChildNode
 
  `
-	servers []string = []string{"1127.0.0.1:2181"}
-	timeout int      = 3
-	zh      *u.ZH
 )
 
 func parasFlag() []string {
@@ -96,7 +42,8 @@ func parasFlag() []string {
 		flag.PrintDefaults()
 	}
 
-	flag.StringVar(&command, "c", "", "command, such as: get/set/child/creat/watchExist/watchChildren/del")
+	flag.Var(&servers, "s", "zk server list. e.g: 127.0.0.1:2181,127.0.0.2:2181.")
+	flag.StringVar(&command, "c", "", "command, such as: get/set/child/creat/watch/del")
 	flag.StringVar(&path, "p", "/mynode/test", "node path")
 	flag.StringVar(&data, "d", "test set2", "string data")
 	flag.IntVar(&version, "v", 0, "data version")
@@ -105,31 +52,21 @@ func parasFlag() []string {
 	return flag.Args()
 }
 
-func init() {
-	var err error
+func initZk(servers []string, timeout int) (err error) {
 	zh, err = u.NewZH(servers, timeout)
+	return
+}
+
+func main() {
+	var timeout int = 3
+	parasFlag()
+
+	err := initZk(servers, timeout)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(-1)
 	}
 	defer zh.Close()
-}
-
-func main() {
-	args := parasFlag()
-	fmt.Println(args)
-	fmt.Println(command)
-	fmt.Println(path)
-	fmt.Println(data)
-	fmt.Println(version)
-	fmt.Println(flags)
-
-	// testNode := "/mynode/test"
-	timeout := 3
-	zh, err := u.NewZH(servers, timeout)
-	if err == nil {
-		defer zh.Close()
-	}
 
 	switch command {
 	case "get":
@@ -141,21 +78,13 @@ func main() {
 			fmt.Printf("version: %d, time: %v", stat.Version(), stat.MTime())
 		}
 	case "child":
-		// children
 		paths, err := c.Children(zh, path)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
 		fmt.Println(paths)
 	case "set":
-		// set
 		nodeToSet := path
-		// _, stat, err = c.Get(zh, nodeToSet)
-		// if err != nil {
-		// 	fmt.Println("get zk node fail when set:", err.Error())
-		// 	return
-		// }
-		// Ver := stat.Version()
 		_, errSet := c.Set(zh, nodeToSet, []byte(data), int32(version))
 		if errSet != nil {
 			fmt.Println(errSet.Error())
@@ -167,7 +96,6 @@ func main() {
 		}
 		fmt.Println("after set:", content)
 	case "lock":
-		// lock
 		nodeToSet := path + "/test1"
 		fmt.Println("begin to lock")
 		lock := c.GetLock(zh, nodeToSet)
@@ -192,6 +120,7 @@ func main() {
 		fmt.Println("after set in lock:", content)
 		lock.Unlock()
 
+		// todo: create node by path
 	case "create":
 		// 0: Permanent node
 		c.Create(zh, path+"/test1", []byte("data"), 0)
@@ -205,6 +134,7 @@ func main() {
 		}
 		fmt.Println("after create:", paths)
 
+		// todo: watch by param type: exist/child
 	case "watch":
 		fmt.Println("check watch on path:")
 		existOk, Eevent := c.WatchExist(zh, path)
@@ -228,7 +158,7 @@ func main() {
 			fmt.Println(c)
 		}
 	case "del":
-		// delete child nodes node
+		// delete child nodes
 		c.DelChildNode(zh, path)
 	}
 }

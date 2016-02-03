@@ -1,9 +1,7 @@
 package command
 
 import (
-	// "flag"
 	"fmt"
-	// "os"
 
 	u "github.com/ianwoolf/zkClient/util"
 	zk "go.intra.xiaojukeji.com/golang/go-zookeeper/zk"

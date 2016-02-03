@@ -1,7 +1,6 @@
 package util
 
 import (
-	// "sort"
 	"time"
 
 	zk "go.intra.xiaojukeji.com/golang/go-zookeeper/zk"
