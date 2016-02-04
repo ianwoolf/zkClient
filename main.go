@@ -122,7 +122,9 @@ func main() {
 
 	case "create":
 		//flags: 0- Permanent node  2- sequence node
-		fmt.Println(path, data, flags)
+		if data == "" || path == "" {
+			fmt.Println("create command must have data or path, please check and do again")
+		}
 		c.Create(zh, path, []byte(data), int32(flags))
 		paths, cerr := zh.Children(path)
 		if cerr != nil {
