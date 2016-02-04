@@ -120,22 +120,18 @@ func main() {
 		fmt.Println("after set in lock:", content)
 		lock.Unlock()
 
-		// todo: create node by path
 	case "create":
-		// 0: Permanent node
-		c.Create(zh, path+"/test1", []byte("data"), 0)
-		c.Create(zh, path+"/test2", []byte("data"), 0)
-		// 2: sequence node
-		c.Create(zh, path+"/se-job", []byte("data"), 2)
-		c.Create(zh, path+"/se-job", []byte("data"), 2)
+		//flags: 0- Permanent node  2- sequence node
+		fmt.Println(path, data, flags)
+		c.Create(zh, path, []byte(data), int32(flags))
 		paths, cerr := zh.Children(path)
 		if cerr != nil {
 			fmt.Println(cerr.Error())
 		}
 		fmt.Println("after create:", paths)
 
-		// todo: watch by param type: exist/child
 	case "watch":
+		// todo: watch by param type: exist/child
 		fmt.Println("check watch on path:")
 		existOk, Eevent := c.WatchExist(zh, path)
 		if existOk {

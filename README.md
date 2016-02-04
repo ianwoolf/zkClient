@@ -23,12 +23,11 @@ zk client, zk demo
         	data version
     	
 ### command
-    go build
     ./zkClient -s 127.0.0.1:2181 -c get -p /mynode/test
     ./zkClient -s 127.0.0.1:2181 -c child -p /mynode/test
-    # todo: create node by param path
-    ./zkClient -s 127.0.0.1:2181 -c create -p /mynode/test
-    ./zkClient -s 127.0.0.1:2181 -c child -p /mynode/test
+    # flags: 0-Permanent 2-sequence
+    ./zkClient -s 127.0.0.1:2181 -c create -p /mynode/test/test6 -d "content" -flags 0
+    ./zkClient -s 127.0.0.1:2181 -c create -p /mynode/test/se-job -d "content" -flags 2
 
     # first get，get node version, then set node value
     ./zkClient -s 127.0.0.1:2181 -c get -p /mynode/test/test1
